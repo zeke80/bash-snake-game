@@ -10,6 +10,12 @@
 #define IZQ 75
 #define DER 77
 #define ABA 80
+
+#define W 119
+#define A 97
+#define D 100
+#define S 115
+
 #define ESC 27
 #define ENT 13
 #define POS 43
@@ -21,14 +27,25 @@ struct player{
 	player *sig;
 };
 
-bool fs,ft,fa;
-bool bw;
-int pa;
+int winer;
+
+//SNAKE 1
 int cuerpo[2664][2];
 int n;
 int tam;
 int x,y;
 int dir;
+
+//SNAKE 2
+int cuerpo1[2664][2];
+int n1;
+int tam1;
+int x1,y1;
+int dir1;
+
+bool bw;
+int pa;
+bool fs,ft,fa;
 int xc,yc;
 int xs,ys;
 int xt,yt;
@@ -88,7 +105,7 @@ int color(int b, int f){
   }
 
   // **  Get and Save information on the console screen buffer.
-  // **  Obtener y guardar información sobre la pantalla de la consola de amortiguación.
+  // **  Obtener y guardar informaciï¿½n sobre la pantalla de la consola de amortiguaciï¿½n.
 	GetConsoleScreenBufferInfo( hConsole, &csbi );
 	wAttributesOld = csbi.wAttributes;
 
@@ -298,24 +315,50 @@ void marcador(){
 }
 
 void begin(){
+	winer = 0;
 	
+	x = 105;
+	y = 15;
+	x1 = 15;
+	y1 = 15;
+
+	dir = 3;
+	dir1 = 4;
+
+	n = 1;
+	n1 = 1;
+
+	/*tam = 4;
+	tam1 = 4;*/
+
+	tam = 10;
+	tam1 = 10;
+
+	for(int i = 0;i < tam;i++){
+		cuerpo[i][0] = 0;
+		cuerpo[i][1] = 0;
+
+		cuerpo1[i][0] = 0;
+		cuerpo1[i][1] = 0;
+	}
+
 	do{
-		x = (rand() % 91) + 15;
+		/*x = (rand() % 91) + 15;
 		y = (rand() % 3) + 15;
+		x1 = (rand() % 91) + 15;
+		y1 = (rand() % 3) + 15;*/
+
 		xc = (rand() % 111) + 5;
 		yc = (rand() % 23) + 5;
-	}while((x == xc && y == yc)||(x % 2 == 0)||(xc % 2 == 0));
-	
-	dir = (rand() % 4) + 1;
-	n = 1;
-	tam = 4;
+	}while((x == xc && y == yc)||(x1 == xc && y1 == yc)||(xc % 2 == 0));
+
+	bw = false;
 	v = 100;
 	sco = 0;
 	comando = 0;
 	fs = false;
 	ft = false;
 	fa = false;
-	bw = false;
 	pa = 0;
 	xs = 0;
 	ys = 0;
@@ -336,6 +379,12 @@ void guardar_posicion(){
 	n++;
 	if(n == tam)
 		n = 1;
+
+	cuerpo1[n1][0] = x1;
+	cuerpo1[n1][1] = y1;
+	n1++;
+	if(n1 == tam1)
+		n1 = 1;
 }
 
 void pintar_cuerpo(){
@@ -343,11 +392,19 @@ void pintar_cuerpo(){
 	gotoxy(x,y);
 	printf("O");
 	color(0,15);
+
+	color(0,11);
+	gotoxy(x1,y1);
+	printf("O");
+	color(0,15);
 }
 
 void borrar_cuerpo(){	
 	gotoxy(cuerpo[n][0],cuerpo[n][1]);
 	printf(" ");	
+
+	gotoxy(cuerpo1[n1][0],cuerpo1[n1][1]);
+	printf(" ");
 }
 
 void movi(){
@@ -370,6 +427,22 @@ void movi(){
 				if(dir != 3)
 					dir = 4;
 				break;
+			case W:
+				if(dir1 != 2)
+					dir1 = 1;
+				break;
+			case S:
+				if(dir1 != 1)
+					dir1 = 2;
+				break;
+			case A:
+				if(dir1 != 4)
+					dir1 = 3;
+				break;
+			case D:
+				if(dir1 != 3)
+					dir1 = 4;
+				break;
 			case POS:
 					comando = 1;
 				break;
@@ -385,6 +458,11 @@ void ejecutar(){
 	if(dir == 2)y++;
 	if(dir == 3)x -= 2;
 	if(dir == 4)x += 2;
+
+	if(dir1 == 1)y1--;
+	if(dir1 == 2)y1++;
+	if(dir1 == 3)x1 -= 2;
+	if(dir1 == 4)x1 += 2;
 	
 	if(comando == 1)v -= 10;
 	if(comando == 2)v += 10;
@@ -447,8 +525,64 @@ void proba_comida(){
 	color(0,15);
 }
 
+void proba_comida1(){
+	bool a;
+	
+	if((rand() % 100) + 1 < 11 && fs == false){
+		color(0,9);
+		fs = true;
+		do{
+			a = false;
+			xs = (rand() % 111) + 5;
+			ys = (rand() % 23) + 5;
+			for(int i = 1; i < tam1; i++){
+				if(xs == cuerpo1[i][0] && ys == cuerpo1[i][1])
+					a = true;
+			}
+		}while(a == true || xs % 2 == 0 || (xs == xc && ys == yc) || (xs == xt && ys == yt) || (xs == xa && ys == ya));
+		tam1++;
+		gotoxy(xs,ys);printf("%c",254);		
+	}
+	
+	if((rand() % 100) + 1 < 11 && ft == false){
+		color(0,10);
+		ft = true;
+		do{
+			a = false;
+			xt = (rand() % 111) + 5;
+			yt = (rand() % 23) + 5;
+			for(int i = 1; i < tam1; i++){
+				if(xt == cuerpo1[i][0] && yt == cuerpo1[i][1])
+					a = true;
+			}
+		}while(a == true || xt % 2 == 0 || (xt == xc && yt == yc) || (xt == xs && yt == ys) || (xt == xa && yt == ya));
+		tam1++;
+		gotoxy(xt,yt);printf("%c",254);		
+	}
+	
+	if((rand() % 100) + 1 < 11 && fa == false){
+		color(0,13);
+		fa = true;
+		do{
+			a = false;
+			xa = (rand() % 111) + 5;
+			ya = (rand() % 23) + 5;
+			for(int i = 1; i < tam1; i++){
+				if(xa == cuerpo1[i][0] && ya == cuerpo1[i][1])
+					a = true;
+			}
+		}while(a == true || xa % 2 == 0 || (xa == xc && ya == yc) || (xa == xs && ya == ys) || (xa == xt && ya == yt));
+		tam1++;
+		gotoxy(xa,ya);printf("%c",254);		
+	}	
+	
+	color(0,15);
+}
+
 void comer(){
 	bool a;
+
+	//SNAKE 1
 	
 	color(0,4);
 
@@ -494,12 +628,67 @@ void comer(){
 		ya = 0;	
 	}			
 	
+	//SNAKE 2
+
+	color(0,4);
+
+	if(x1 == xc && y1 == yc){
+		do{
+			a = false;
+			xc = (rand() % 111) + 5;
+			yc = (rand() % 23) + 5;
+			for(int i = 1; i < tam1; i++){
+				if(xc == cuerpo1[i][0] && yc == cuerpo1[i][1])
+					a = true;
+			}
+		}while(a == true || xc % 2 == 0 || (xc == xs && yc == ys) || (xc == xt && yc == yt) || (xc == xa && yc == ya));
+	//	v--;
+		tam1++;
+		sco += 10;
+		gotoxy(xc,yc);printf("%c",254);
+		proba_comida1();
+	}		
+	
+	if(x1 == xs && y1 == ys){
+		fs = false;
+		v -= 5;
+		sco += 300;
+		xs = 0;
+		ys = 0;	
+	}
+	
+	if(x1 == xt && y1 == yt){
+		ft = false;
+		tam1 *= 2;
+		sco += 300;
+		xt = 0;
+		yt = 0;	
+	}
+	
+	if(x1 == xa && y1 == ya){
+		fa = false;			
+		bw = true;
+		pa = 200;
+		mapa();		
+		xa = 0;
+		ya = 0;	
+	}		
 }
 
 bool game_over(){
 	if(bw == false){
-		if(y == 4 || y == 28 || x == 3 || x == 117)
+		if((y == 4 || y == 28 || x == 3 || x == 117) && (y1 == 4 || y1 == 28 || x1 == 3 || x1 == 117)){
+			winer = 3;
 			return true;
+		}
+		if(y == 4 || y == 28 || x == 3 || x == 117){
+			winer = 2;
+			return true;
+		}
+		if(y1 == 4 || y1 == 28 || x1 == 3 || x1 == 117){
+			winer = 1;
+			return true;
+		}
 	}
 	else{
 		if(y == 4)
@@ -509,16 +698,40 @@ bool game_over(){
 		if(x == 3)
 			x = 115;
 		if(x == 117)
-			x = 5;				
+			x = 5;		
+
+		if(y1 == 4)
+			y1 = 27;
+		if(y1 == 28)
+			y1 = 5;
+		if(x1 == 3)
+			x1 = 115;
+		if(x1 == 117)
+			x1 = 5;			
 	}
 				
-	
-	for(int i; i < tam; i++){
-		if(x == cuerpo[i][0] && y == cuerpo[i][1]){
+	int i;
+	for(i = 0; i < tam; i++){
+		if((x == cuerpo[i][0] && y == cuerpo[i][1]) || (x == cuerpo1[i][0] && y == cuerpo1[i][1])){
 			bw = false;
+			winer = 2;
+			break;
+		}
+	}
+
+	for(i = 0; i < tam1; i++){
+		if((x1 == cuerpo1[i][0] && y1 == cuerpo1[i][1]) || (x1 == cuerpo[i][0] && y1 == cuerpo[i][1])){
+			bw = false;
+			if(winer == 2)
+				winer = 3;
+			else
+				winer = 1;
 			return true;
 		}
 	}
+
+	if(winer == 2)
+		return true;
 	
 /*	
 	for(int i; i < tam; i++){
@@ -577,6 +790,19 @@ void jugar(){
 	
 	char name[63];
 	
+	gotoxy(42,9);
+	if(winer == 3){
+		color(0,5);
+		printf("TIE");
+	}
+	else{
+		if(winer == 1)
+			color(0,10);
+		else
+			color(0,11);
+		printf("WINER PLAYER %i\n",winer);
+	}
+
 	color(0,4);
 	gotoxy(42,10);
 	printf("%c%c%c %c%c%c %c%c%c%c%c %c%c%c %c%c%c%c %c   %c %c%c%c %c%c%c",220,223,223,220,223,220,219,219,220,219,219,219,223,223,220,223,223,220,219,219,219,223,223,219,223,220);
